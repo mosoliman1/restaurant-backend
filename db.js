@@ -1,0 +1,87 @@
+const sqlite3 = require('sqlite3').verbose();
+
+const db = new sqlite3.Database('./restaurant.db', (err) => {
+  if (err) {
+    console.error('Error opening DB', err.message);
+  } else {
+    console.log('Connected to SQLite database.');
+  }
+});
+
+db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      userId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      email TEXT UNIQUE NOT NULL,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS restaurants (
+      restaurantId INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      location TEXT,
+      description TEXT
+    )
+  `);
+
+  db.run(`
+  INSERT INTO restaurants (name, location, description)
+  VALUES ('Mando Pizzeria', 'Cairo', 'Best pizza in town')
+`);
+
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS tables (
+      tableId INTEGER PRIMARY KEY AUTOINCREMENT,
+      restaurantId INTEGER NOT NULL,
+      capacity INTEGER NOT NULL,
+      status TEXT DEFAULT 'available',
+      FOREIGN KEY (restaurantId) REFERENCES restaurants(restaurantId)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS reservations (
+      reservationId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER NOT NULL,
+      restaurantId INTEGER NOT NULL,
+      date TEXT NOT NULL,
+      time TEXT NOT NULL,
+      guests INTEGER NOT NULL,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users(userId),
+      FOREIGN KEY (restaurantId) REFERENCES restaurants(restaurantId)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS restaurant_schedule (
+      scheduleId INTEGER PRIMARY KEY AUTOINCREMENT,
+      restaurantId INTEGER NOT NULL,
+      closedTime TEXT NOT NULL,
+      FOREIGN KEY (restaurantId) REFERENCES restaurants(restaurantId)
+    )
+  `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS auth_logs (
+      logId INTEGER PRIMARY KEY AUTOINCREMENT,
+      userId INTEGER,
+      email TEXT,
+      event_type TEXT,
+      ip_address TEXT,
+      user_agent TEXT,
+      success INTEGER,
+      failure_reason TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+});
+
+module.exports = db;
