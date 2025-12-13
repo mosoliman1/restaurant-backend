@@ -2,6 +2,27 @@
 const db = require('../db');
 
 const Reservation = {
+  getByUser(userId, callback) {
+  const sql = `
+    SELECT
+      r.reservationId,
+      r.date,
+      r.time,
+      r.guests,
+      r.status,
+      res.restaurantId,
+      res.name AS restaurantName,
+      res.location AS restaurantLocation
+    FROM reservations r
+    JOIN restaurants res ON res.restaurantId = r.restaurantId
+    WHERE r.userId = ?
+      AND (r.status IS NULL OR r.status != 'cancelled')
+    ORDER BY r.date DESC, r.time DESC
+  `;
+  db.all(sql, [userId], callback);
+},
+
+
   create({ userId, restaurantId, date, time, guests }, callback) {
     const sql = `
       INSERT INTO reservations (userId, restaurantId, date, time, guests)

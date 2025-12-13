@@ -29,10 +29,33 @@ db.serialize(() => {
     )
   `);
 
-  db.run(`
-  INSERT INTO restaurants (name, location, description)
-  VALUES ('Mando Pizzeria', 'Cairo', 'Best pizza in town')
-`);
+  // Seed restaurants ONCE (do not duplicate on every server restart)
+db.get("SELECT COUNT(*) AS count FROM restaurants", [], (err, row) => {
+  if (err) return console.error("Seed check error:", err.message);
+
+  if (row.count === 0) {
+    const restaurants = [
+      ["Mando Pizzeria", "Cairo", "Best pizza in town"],
+      ["Nile Grill", "Giza", "Egyptian & grilled classics"],
+      ["Alex SeaFood House", "Alexandria", "Fresh seafood daily"],
+      ["Downtown Burgers", "Cairo", "Smash burgers & fries"],
+      ["Sushi Sakura", "New Cairo", "Japanese sushi & ramen"],
+      ["Tikka Corner", "Nasr City", "Chicken tikka & wraps"],
+      ["Pattini", "Maadi", "Italian pasta & salads"],
+      ["Lychee", "Sheikh Zayed", "Healthy bowls & smoothies"]
+    ];
+
+    const stmt = db.prepare(
+      "INSERT INTO restaurants (name, location, description) VALUES (?, ?, ?)"
+    );
+
+    restaurants.forEach((r) => stmt.run(r[0], r[1], r[2]));
+    stmt.finalize();
+
+    console.log("✅ Seeded restaurants (first run only).");
+  }
+});
+
 
 
   db.run(`

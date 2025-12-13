@@ -53,3 +53,23 @@ exports.getAvailability = (req, res) => {
     });
   });
 };
+
+exports.getMyReservations = (req, res) => {
+  const userId = req.user.userId;
+
+  Reservation.getByUser(userId, (err, rows) => {
+    if (err) {
+      return res.status(500).json({
+        success: false,
+        statusCode: 500,
+        errorCode: 'SERVER_ERROR'
+      });
+    }
+
+    return res.json({
+      success: true,
+      statusCode: 200,
+      data: rows
+    });
+  });
+};

@@ -4,6 +4,8 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
 const db = require('./db'); // initializes the database
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 
 // ROUTES (we will create these files later)
 const authRoutes = require('./routes/authRoutes');
@@ -12,10 +14,33 @@ const restaurantRoutes = require('./routes/restaurantRoutes');
 const reservationRoutes = require('./routes/reservationRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
+
 app.use(cors({
-  origin: 'http://localhost:5173', // you can change it later to your frontend
-  credentials: true
+  origin: function (origin, cb) {
+    const allowed = [
+      "http://localhost:5500",
+      "http://127.0.0.1:5500",
+      "http://localhost:5501",
+      "http://127.0.0.1:5501",
+      "http://localhost:5173",
+      "http://127.0.0.1:5173"
+    ];
+
+    // allow requests with no origin (Postman/curl)
+    if (!origin) return cb(null, true);
+
+    if (allowed.includes(origin)) return cb(null, true);
+
+    return cb(new Error("Not allowed by CORS: " + origin));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
+app.options(/.*/, cors());
+
+
+
 
 app.use(express.json());
 app.use(cookieParser());
