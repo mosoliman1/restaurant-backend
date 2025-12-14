@@ -4,8 +4,6 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const app = express();
 const db = require('./db'); // initializes the database
-const helmet = require("helmet");
-const rateLimit = require("express-rate-limit");
 
 // ROUTES (we will create these files later)
 const authRoutes = require('./routes/authRoutes');
